@@ -1,6 +1,392 @@
 // ============================================
-// KODNEST PREMIUM BUILD SYSTEM - ROUTING
+// KODNEST PREMIUM BUILD SYSTEM - JOB TRACKER
 // ============================================
+
+// State management
+let currentFilters = {
+    keyword: '',
+    location: '',
+    mode: '',
+    experience: '',
+    source: '',
+    sort: 'latest'
+};
+
+let selectedJob = null;
+
+// LocalStorage helpers
+const getSavedJobs = () => {
+    const saved = localStorage.getItem('savedJobs');
+    return saved ? JSON.parse(saved) : [];
+};
+
+const saveJob = (jobId) => {
+    const savedJobs = getSavedJobs();
+    if (!savedJobs.includes(jobId)) {
+        savedJobs.push(jobId);
+        localStorage.setItem('savedJobs', JSON.stringify(savedJobs));
+    }
+};
+
+const unsaveJob = (jobId) => {
+    const savedJobs = getSavedJobs();
+    const filtered = savedJobs.filter(id => id !== jobId);
+    localStorage.setItem('savedJobs', JSON.stringify(filtered));
+};
+
+const isJobSaved = (jobId) => {
+    return getSavedJobs().includes(jobId);
+};
+
+// Helper functions
+const formatPostedDate = (daysAgo) => {
+    if (daysAgo === 0) return 'Today';
+    if (daysAgo === 1) return '1 day ago';
+    return `${daysAgo} days ago`;
+};
+
+const getSourceBadgeClass = (source) => {
+    const classes = {
+        'LinkedIn': 'kn-badge--linkedin',
+        'Naukri': 'kn-badge--naukri',
+        'Indeed': 'kn-badge--indeed'
+    };
+    return classes[source] || '';
+};
+
+// Filter and sort jobs
+const filterAndSortJobs = (jobs) => {
+    let filtered = [...jobs];
+
+    // Keyword filter (title or company)
+    if (currentFilters.keyword) {
+        const keyword = currentFilters.keyword.toLowerCase();
+        filtered = filtered.filter(job =>
+            job.title.toLowerCase().includes(keyword) ||
+            job.company.toLowerCase().includes(keyword)
+        );
+    }
+
+    // Location filter
+    if (currentFilters.location) {
+        filtered = filtered.filter(job =>
+            job.location.toLowerCase() === currentFilters.location.toLowerCase()
+        );
+    }
+
+    // Mode filter
+    if (currentFilters.mode) {
+        filtered = filtered.filter(job =>
+            job.mode.toLowerCase() === currentFilters.mode.toLowerCase()
+        );
+    }
+
+    // Experience filter
+    if (currentFilters.experience) {
+        filtered = filtered.filter(job =>
+            job.experience.toLowerCase() === currentFilters.experience.toLowerCase()
+        );
+    }
+
+    // Source filter
+    if (currentFilters.source) {
+        filtered = filtered.filter(job =>
+            job.source.toLowerCase() === currentFilters.source.toLowerCase()
+        );
+    }
+
+    // Sort
+    if (currentFilters.sort === 'latest') {
+        filtered.sort((a, b) => a.postedDaysAgo - b.postedDaysAgo);
+    } else if (currentFilters.sort === 'oldest') {
+        filtered.sort((a, b) => b.postedDaysAgo - a.postedDaysAgo);
+    }
+
+    return filtered;
+};
+
+// Render job card
+const renderJobCard = (job, showRemoveButton = false) => {
+    const saved = isJobSaved(job.id);
+    const saveButtonText = saved ? 'Saved ✓' : 'Save';
+    const saveButtonClass = saved ? 'kn-button--saved' : '';
+
+    return `
+        <div class="kn-job-card" data-job-id="${job.id}">
+            <div class="kn-job-card__header">
+                <div>
+                    <h3 class="kn-job-card__title">${job.title}</h3>
+                    <p class="kn-job-card__company">${job.company}</p>
+                </div>
+                <span class="kn-badge ${getSourceBadgeClass(job.source)}">${job.source}</span>
+            </div>
+            
+            <div class="kn-job-card__meta">
+                <span class="kn-job-meta">📍 ${job.location} • ${job.mode}</span>
+                <span class="kn-job-meta">💼 ${job.experience}</span>
+                <span class="kn-job-meta">💰 ${job.salaryRange}</span>
+                <span class="kn-job-meta kn-job-meta--posted">🕒 ${formatPostedDate(job.postedDaysAgo)}</span>
+            </div>
+            
+            <div class="kn-job-card__actions">
+                <button class="kn-button kn-button--secondary kn-button--small" onclick="viewJob(${job.id})">View</button>
+                ${showRemoveButton ?
+            `<button class="kn-button kn-button--secondary kn-button--small" onclick="removeFromSaved(${job.id})">Remove</button>` :
+            `<button class="kn-button kn-button--secondary kn-button--small ${saveButtonClass}" onclick="toggleSaveJob(${job.id})">${saveButtonText}</button>`
+        }
+                <button class="kn-button kn-button--primary kn-button--small" onclick="applyJob('${job.applyUrl}')">Apply</button>
+            </div>
+        </div>
+    `;
+};
+
+// Render filter bar
+const renderFilterBar = () => {
+    return `
+        <div class="kn-filter-bar">
+            <div class="kn-filter-group">
+                <input 
+                    type="text" 
+                    id="keyword-filter" 
+                    class="kn-filter-input" 
+                    placeholder="Search by title or company..."
+                    value="${currentFilters.keyword}"
+                >
+            </div>
+            
+            <div class="kn-filter-group">
+                <select id="location-filter" class="kn-filter-select">
+                    <option value="">All Locations</option>
+                    <option value="Bangalore" ${currentFilters.location === 'Bangalore' ? 'selected' : ''}>Bangalore</option>
+                    <option value="Pune" ${currentFilters.location === 'Pune' ? 'selected' : ''}>Pune</option>
+                    <option value="Hyderabad" ${currentFilters.location === 'Hyderabad' ? 'selected' : ''}>Hyderabad</option>
+                    <option value="Chennai" ${currentFilters.location === 'Chennai' ? 'selected' : ''}>Chennai</option>
+                    <option value="Mumbai" ${currentFilters.location === 'Mumbai' ? 'selected' : ''}>Mumbai</option>
+                    <option value="Noida" ${currentFilters.location === 'Noida' ? 'selected' : ''}>Noida</option>
+                    <option value="Gurgaon" ${currentFilters.location === 'Gurgaon' ? 'selected' : ''}>Gurgaon</option>
+                    <option value="Mysore" ${currentFilters.location === 'Mysore' ? 'selected' : ''}>Mysore</option>
+                    <option value="Remote" ${currentFilters.location === 'Remote' ? 'selected' : ''}>Remote</option>
+                </select>
+            </div>
+            
+            <div class="kn-filter-group">
+                <select id="mode-filter" class="kn-filter-select">
+                    <option value="">All Modes</option>
+                    <option value="Remote" ${currentFilters.mode === 'Remote' ? 'selected' : ''}>Remote</option>
+                    <option value="Hybrid" ${currentFilters.mode === 'Hybrid' ? 'selected' : ''}>Hybrid</option>
+                    <option value="Onsite" ${currentFilters.mode === 'Onsite' ? 'selected' : ''}>Onsite</option>
+                </select>
+            </div>
+            
+            <div class="kn-filter-group">
+                <select id="experience-filter" class="kn-filter-select">
+                    <option value="">All Experience</option>
+                    <option value="Fresher" ${currentFilters.experience === 'Fresher' ? 'selected' : ''}>Fresher</option>
+                    <option value="0-1" ${currentFilters.experience === '0-1' ? 'selected' : ''}>0-1 years</option>
+                    <option value="1-3" ${currentFilters.experience === '1-3' ? 'selected' : ''}>1-3 years</option>
+                </select>
+            </div>
+            
+            <div class="kn-filter-group">
+                <select id="source-filter" class="kn-filter-select">
+                    <option value="">All Sources</option>
+                    <option value="LinkedIn" ${currentFilters.source === 'LinkedIn' ? 'selected' : ''}>LinkedIn</option>
+                    <option value="Naukri" ${currentFilters.source === 'Naukri' ? 'selected' : ''}>Naukri</option>
+                    <option value="Indeed" ${currentFilters.source === 'Indeed' ? 'selected' : ''}>Indeed</option>
+                </select>
+            </div>
+            
+            <div class="kn-filter-group">
+                <select id="sort-filter" class="kn-filter-select">
+                    <option value="latest" ${currentFilters.sort === 'latest' ? 'selected' : ''}>Latest First</option>
+                    <option value="oldest" ${currentFilters.sort === 'oldest' ? 'selected' : ''}>Oldest First</option>
+                </select>
+            </div>
+            
+            <button class="kn-button kn-button--secondary kn-button--small" onclick="clearFilters()">Clear</button>
+        </div>
+    `;
+};
+
+// Render job modal
+const renderJobModal = (job) => {
+    const saved = isJobSaved(job.id);
+    const saveButtonText = saved ? 'Saved ✓' : 'Save Job';
+    const saveButtonClass = saved ? 'kn-button--saved' : '';
+
+    return `
+        <div class="kn-modal" id="jobModal" onclick="closeModalOnBackdrop(event)">
+            <div class="kn-modal__content">
+                <div class="kn-modal__header">
+                    <div>
+                        <h2 class="kn-modal__title">${job.title}</h2>
+                        <p class="kn-modal__company">${job.company}</p>
+                    </div>
+                    <button class="kn-modal__close" onclick="closeModal()">&times;</button>
+                </div>
+                
+                <div class="kn-modal__body">
+                    <div class="kn-job-detail">
+                        <div class="kn-job-detail__meta">
+                            <div class="kn-job-detail__item">
+                                <strong>Location:</strong> ${job.location}
+                            </div>
+                            <div class="kn-job-detail__item">
+                                <strong>Mode:</strong> ${job.mode}
+                            </div>
+                            <div class="kn-job-detail__item">
+                                <strong>Experience:</strong> ${job.experience}
+                            </div>
+                            <div class="kn-job-detail__item">
+                                <strong>Salary:</strong> ${job.salaryRange}
+                            </div>
+                            <div class="kn-job-detail__item">
+                                <strong>Source:</strong> <span class="kn-badge ${getSourceBadgeClass(job.source)}">${job.source}</span>
+                            </div>
+                            <div class="kn-job-detail__item">
+                                <strong>Posted:</strong> ${formatPostedDate(job.postedDaysAgo)}
+                            </div>
+                        </div>
+                        
+                        <div class="kn-job-detail__section">
+                            <h3 class="kn-job-detail__heading">Description</h3>
+                            <p class="kn-job-detail__text">${job.description}</p>
+                        </div>
+                        
+                        <div class="kn-job-detail__section">
+                            <h3 class="kn-job-detail__heading">Required Skills</h3>
+                            <div class="kn-skills">
+                                ${job.skills.map(skill => `<span class="kn-skill-tag">${skill}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="kn-modal__footer">
+                    <button class="kn-button kn-button--secondary ${saveButtonClass}" onclick="toggleSaveJob(${job.id})">${saveButtonText}</button>
+                    <button class="kn-button kn-button--primary" onclick="applyJob('${job.applyUrl}')">Apply Now</button>
+                </div>
+            </div>
+        </div>
+    `;
+};
+
+// Global functions for onclick handlers
+window.viewJob = (jobId) => {
+    const job = jobsData.find(j => j.id === jobId);
+    if (job) {
+        selectedJob = job;
+        document.body.insertAdjacentHTML('beforeend', renderJobModal(job));
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeModal = () => {
+    const modal = document.getElementById('jobModal');
+    if (modal) {
+        modal.remove();
+        document.body.style.overflow = 'auto';
+    }
+};
+
+window.closeModalOnBackdrop = (event) => {
+    if (event.target.classList.contains('kn-modal')) {
+        closeModal();
+    }
+};
+
+window.toggleSaveJob = (jobId) => {
+    if (isJobSaved(jobId)) {
+        unsaveJob(jobId);
+    } else {
+        saveJob(jobId);
+    }
+
+    // Refresh current page
+    const currentRoute = window.location.hash.replace('#', '/') || '/';
+    const pageName = routes[currentRoute] || 'landing';
+    renderPage(pageName);
+
+    // Update modal if open
+    const modal = document.getElementById('jobModal');
+    if (modal && selectedJob && selectedJob.id === jobId) {
+        closeModal();
+        viewJob(jobId);
+    }
+};
+
+window.removeFromSaved = (jobId) => {
+    unsaveJob(jobId);
+    renderPage('saved');
+};
+
+window.applyJob = (url) => {
+    window.open(url, '_blank');
+};
+
+window.clearFilters = () => {
+    currentFilters = {
+        keyword: '',
+        location: '',
+        mode: '',
+        experience: '',
+        source: '',
+        sort: 'latest'
+    };
+    renderPage('dashboard');
+};
+
+// Attach filter listeners
+const attachFilterListeners = () => {
+    const keywordInput = document.getElementById('keyword-filter');
+    const locationSelect = document.getElementById('location-filter');
+    const modeSelect = document.getElementById('mode-filter');
+    const experienceSelect = document.getElementById('experience-filter');
+    const sourceSelect = document.getElementById('source-filter');
+    const sortSelect = document.getElementById('sort-filter');
+
+    if (keywordInput) {
+        keywordInput.addEventListener('input', (e) => {
+            currentFilters.keyword = e.target.value;
+            renderPage('dashboard');
+        });
+    }
+
+    if (locationSelect) {
+        locationSelect.addEventListener('change', (e) => {
+            currentFilters.location = e.target.value;
+            renderPage('dashboard');
+        });
+    }
+
+    if (modeSelect) {
+        modeSelect.addEventListener('change', (e) => {
+            currentFilters.mode = e.target.value;
+            renderPage('dashboard');
+        });
+    }
+
+    if (experienceSelect) {
+        experienceSelect.addEventListener('change', (e) => {
+            currentFilters.experience = e.target.value;
+            renderPage('dashboard');
+        });
+    }
+
+    if (sourceSelect) {
+        sourceSelect.addEventListener('change', (e) => {
+            currentFilters.source = e.target.value;
+            renderPage('dashboard');
+        });
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', (e) => {
+            currentFilters.sort = e.target.value;
+            renderPage('dashboard');
+        });
+    }
+};
 
 // Route definitions
 const routes = {
@@ -20,26 +406,40 @@ const pages = {
                 <div class="kn-landing__hero">
                     <h1 class="kn-landing__headline">Stop Missing The Right Jobs.</h1>
                     <p class="kn-landing__subtext">Precision-matched job discovery delivered daily at 9AM.</p>
-                    <a href="#settings" class="kn-button kn-button--primary kn-button--large">Start Tracking</a>
+                    <a href="#dashboard" class="kn-button kn-button--primary kn-button--large">Start Tracking</a>
                 </div>
             </div>
         `
     },
 
     dashboard: {
-        render: () => `
-            <div class="kn-page">
-                <div class="kn-page__header">
-                    <h1 class="kn-page__title">Dashboard</h1>
-                    <p class="kn-page__subtitle">Your personalized job feed</p>
+        render: () => {
+            const filteredJobs = filterAndSortJobs(jobsData);
+
+            return `
+                <div class="kn-page">
+                    <div class="kn-page__header">
+                        <h1 class="kn-page__title">Dashboard</h1>
+                        <p class="kn-page__subtitle">Your personalized job feed • ${filteredJobs.length} jobs found</p>
+                    </div>
+                    
+                    ${renderFilterBar()}
+                    
+                    <div class="kn-jobs-grid">
+                        ${filteredJobs.map(job => renderJobCard(job)).join('')}
+                    </div>
+                    
+                    ${filteredJobs.length === 0 ? `
+                        <div class="kn-empty-state">
+                            <div class="kn-empty-state__icon">🔍</div>
+                            <h2 class="kn-empty-state__title">No jobs found</h2>
+                            <p class="kn-empty-state__text">Try adjusting your filters to see more results.</p>
+                            <button class="kn-button kn-button--secondary" onclick="clearFilters()">Clear Filters</button>
+                        </div>
+                    ` : ''}
                 </div>
-                <div class="kn-empty-state">
-                    <div class="kn-empty-state__icon">📊</div>
-                    <h2 class="kn-empty-state__title">No jobs yet</h2>
-                    <p class="kn-empty-state__text">In the next step, you will load a realistic dataset.</p>
-                </div>
-            </div>
-        `
+            `;
+        }
     },
 
     settings: {
@@ -120,20 +520,40 @@ const pages = {
     },
 
     saved: {
-        render: () => `
-            <div class="kn-page">
-                <div class="kn-page__header">
-                    <h1 class="kn-page__title">Saved</h1>
-                    <p class="kn-page__subtitle">Jobs you've bookmarked for later</p>
+        render: () => {
+            const savedJobIds = getSavedJobs();
+            const savedJobs = jobsData.filter(job => savedJobIds.includes(job.id));
+
+            if (savedJobs.length === 0) {
+                return `
+                    <div class="kn-page">
+                        <div class="kn-page__header">
+                            <h1 class="kn-page__title">Saved</h1>
+                            <p class="kn-page__subtitle">Jobs you've bookmarked for later</p>
+                        </div>
+                        <div class="kn-empty-state">
+                            <div class="kn-empty-state__icon">🔖</div>
+                            <h2 class="kn-empty-state__title">No saved jobs</h2>
+                            <p class="kn-empty-state__text">Jobs you save will appear here for easy access.</p>
+                            <a href="#dashboard" class="kn-button kn-button--secondary">Browse Jobs</a>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="kn-page">
+                    <div class="kn-page__header">
+                        <h1 class="kn-page__title">Saved</h1>
+                        <p class="kn-page__subtitle">${savedJobs.length} saved jobs</p>
+                    </div>
+                    
+                    <div class="kn-jobs-grid">
+                        ${savedJobs.map(job => renderJobCard(job, true)).join('')}
+                    </div>
                 </div>
-                <div class="kn-empty-state">
-                    <div class="kn-empty-state__icon">🔖</div>
-                    <h2 class="kn-empty-state__title">No saved jobs</h2>
-                    <p class="kn-empty-state__text">Jobs you save will appear here for easy access.</p>
-                    <a href="#dashboard" class="kn-button kn-button--secondary">Browse Jobs</a>
-                </div>
-            </div>
-        `
+            `;
+        }
     },
 
     digest: {
@@ -188,6 +608,11 @@ function renderPage(pageName) {
     }
 
     mainContent.innerHTML = page.render();
+
+    // Attach filter listeners for dashboard
+    if (pageName === 'dashboard') {
+        attachFilterListeners();
+    }
 }
 
 // Update active navigation link
@@ -223,8 +648,10 @@ function navigate(hash) {
     // Close mobile menu if open
     const navLinks = document.getElementById('navLinks');
     const hamburger = document.getElementById('hamburger');
-    navLinks.classList.remove('active');
-    hamburger.classList.remove('active');
+    if (navLinks && hamburger) {
+        navLinks.classList.remove('active');
+        hamburger.classList.remove('active');
+    }
 
     // Scroll to top
     window.scrollTo(0, 0);
@@ -262,7 +689,7 @@ document.addEventListener('click', (e) => {
     const hamburger = document.getElementById('hamburger');
     const nav = document.querySelector('.kn-nav');
 
-    if (nav && !nav.contains(e.target) && navLinks.classList.contains('active')) {
+    if (nav && navLinks && hamburger && !nav.contains(e.target) && navLinks.classList.contains('active')) {
         navLinks.classList.remove('active');
         hamburger.classList.remove('active');
     }
