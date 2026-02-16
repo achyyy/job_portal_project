@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KodNest Premium Build System - Design System</title>
+    <meta name="description" content="A calm, intentional design system for serious B2C products">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="kn-container">
+        <!-- Top Bar -->
+        <header class="kn-top-bar">
+            <div class="kn-top-bar__project">KodNest Premium Build System</div>
+            <div class="kn-top-bar__progress">
+                <span class="kn-progress-indicator">Step 1 / 5</span>
+            </div>
+            <div class="kn-top-bar__status">
+                <span class="kn-status-badge kn-status-badge--in-progress">In Progress</span>
+            </div>
+        </header>
+
+        <!-- Context Header -->
+        <section class="kn-context-header">
+            <h1 class="kn-context-header__title">Design System Overview</h1>
+            <p class="kn-context-header__subtitle">A comprehensive component library built for clarity and consistency</p>
+        </section>
+
+        <!-- Main Content Area -->
+        <div class="kn-main-layout">
+            <!-- Primary Workspace -->
+            <main class="kn-primary-workspace">
+                <div class="kn-card">
+                    <h2 class="kn-heading-secondary">Design Principles</h2>
+                    <p class="kn-body-text">This design system prioritizes calm, intentional design. Every component follows strict spacing, color, and typography rules to ensure visual coherence across all touchpoints.</p>
+                </div>
+
+                <div class="kn-card">
+                    <h2 class="kn-heading-secondary">Color System</h2>
+                    <div class="kn-color-grid">
+                        <div class="kn-color-swatch">
+                            <div class="kn-color-swatch__sample" style="background-color: #F7F6F3;"></div>
+                            <div class="kn-color-swatch__label">Background</div>
+                            <div class="kn-color-swatch__value">#F7F6F3</div>
+                        </div>
+                        <div class="kn-color-swatch">
+                            <div class="kn-color-swatch__sample" style="background-color: #111111;"></div>
+                            <div class="kn-color-swatch__label">Primary Text</div>
+                            <div class="kn-color-swatch__value">#111111</div>
+                        </div>
+                        <div class="kn-color-swatch">
+                            <div class="kn-color-swatch__sample" style="background-color: #8B0000;"></div>
+                            <div class="kn-color-swatch__label">Accent</div>
+                            <div class="kn-color-swatch__value">#8B0000</div>
+                        </div>
+                        <div class="kn-color-swatch">
+                            <div class="kn-color-swatch__sample" style="background-color: #2D5016;"></div>
+                            <div class="kn-color-swatch__label">Success</div>
+                            <div class="kn-color-swatch__value">#2D5016</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kn-card">
+                    <h2 class="kn-heading-secondary">Typography</h2>
+                    <div class="kn-type-specimen">
+                        <h1 class="kn-heading-primary">Primary Heading - Crimson Pro</h1>
+                        <h2 class="kn-heading-secondary">Secondary Heading - Crimson Pro</h2>
+                        <p class="kn-body-text">Body text uses Inter at 16px with generous line height for optimal readability. Text blocks are constrained to 720px maximum width.</p>
+                    </div>
+                </div>
+
+                <div class="kn-card">
+                    <h2 class="kn-heading-secondary">Button Components</h2>
+                    <div class="kn-button-group">
+                        <button class="kn-button kn-button--primary">Primary Action</button>
+                        <button class="kn-button kn-button--secondary">Secondary Action</button>
+                    </div>
+                </div>
+
+                <div class="kn-card">
+                    <h2 class="kn-heading-secondary">Input Components</h2>
+                    <div class="kn-form-group">
+                        <label for="example-input" class="kn-label">Project Name</label>
+                        <input type="text" id="example-input" class="kn-input" placeholder="Enter project name">
+                    </div>
+                    <div class="kn-form-group">
+                        <label for="example-textarea" class="kn-label">Description</label>
+                        <textarea id="example-textarea" class="kn-textarea" rows="4" placeholder="Describe your project"></textarea>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Secondary Panel -->
+            <aside class="kn-secondary-panel">
+                <div class="kn-panel-section">
+                    <h3 class="kn-panel-heading">Step Explanation</h3>
+                    <p class="kn-panel-text">Review the design system components and understand the visual language before building your product.</p>
+                </div>
+
+                <div class="kn-panel-section">
+                    <h3 class="kn-panel-heading">Copyable Prompt</h3>
+                    <div class="kn-prompt-box">
+                        <code class="kn-prompt-code">Create a landing page using KodNest design system with calm, intentional aesthetics</code>
+                    </div>
+                    <button class="kn-button kn-button--secondary kn-button--full-width">Copy Prompt</button>
+                </div>
+
+                <div class="kn-panel-section">
+                    <h3 class="kn-panel-heading">Actions</h3>
+                    <div class="kn-action-buttons">
+                        <button class="kn-button kn-button--secondary kn-button--full-width">Build in Lovable</button>
+                        <button class="kn-button kn-button--secondary kn-button--full-width">It Worked</button>
+                        <button class="kn-button kn-button--secondary kn-button--full-width">Report Error</button>
+                        <button class="kn-button kn-button--secondary kn-button--full-width">Add Screenshot</button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Proof Footer -->
+        <footer class="kn-proof-footer">
+            <div class="kn-proof-checklist">
+                <label class="kn-checkbox-item">
+                    <input type="checkbox" class="kn-checkbox">
+                    <span class="kn-checkbox-label">UI Built</span>
+                </label>
+                <label class="kn-checkbox-item">
+                    <input type="checkbox" class="kn-checkbox">
+                    <span class="kn-checkbox-label">Logic Working</span>
+                </label>
+                <label class="kn-checkbox-item">
+                    <input type="checkbox" class="kn-checkbox">
+                    <span class="kn-checkbox-label">Test Passed</span>
+                </label>
+                <label class="kn-checkbox-item">
+                    <input type="checkbox" class="kn-checkbox">
+                    <span class="kn-checkbox-label">Deployed</span>
+                </label>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
