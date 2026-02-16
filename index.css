@@ -790,6 +790,238 @@ body {
     }
 }
 
+/* ============================================
+   MATCH SCORE BADGES
+   ============================================ */
+
+.kn-match-badge {
+    display: inline-block;
+    padding: 4px var(--kn-space-xs);
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: var(--kn-border-radius);
+    border: 1px solid;
+    white-space: nowrap;
+}
+
+.kn-match-badge--excellent {
+    background-color: #E8F5E9;
+    border-color: var(--kn-color-success);
+    color: var(--kn-color-success);
+}
+
+.kn-match-badge--good {
+    background-color: #FFF8E1;
+    border-color: var(--kn-color-warning);
+    color: var(--kn-color-warning);
+}
+
+.kn-match-badge--fair {
+    background-color: #F5F5F5;
+    border-color: var(--kn-color-text-secondary);
+    color: var(--kn-color-text-secondary);
+}
+
+.kn-match-badge--low {
+    background-color: #FAFAFA;
+    border-color: #CCCCCC;
+    color: #999999;
+}
+
+.kn-job-card__badges {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kn-space-xs);
+    align-items: flex-end;
+}
+
+/* ============================================
+   TOGGLE SWITCH
+   ============================================ */
+
+.kn-match-toggle {
+    margin-bottom: var(--kn-space-md);
+    padding: var(--kn-space-md);
+    background-color: var(--kn-color-surface);
+    border: 1px solid var(--kn-color-border);
+    border-radius: var(--kn-border-radius);
+}
+
+.kn-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: var(--kn-space-sm);
+    cursor: pointer;
+    user-select: none;
+}
+
+.kn-toggle-input {
+    display: none;
+}
+
+.kn-toggle-slider {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background-color: var(--kn-color-border);
+    border-radius: 12px;
+    transition: background-color var(--kn-transition-duration) var(--kn-transition-timing);
+}
+
+.kn-toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 3px;
+    top: 3px;
+    background-color: var(--kn-color-surface);
+    border-radius: 50%;
+    transition: transform var(--kn-transition-duration) var(--kn-transition-timing);
+}
+
+.kn-toggle-input:checked+.kn-toggle-slider {
+    background-color: var(--kn-color-accent);
+}
+
+.kn-toggle-input:checked+.kn-toggle-slider::before {
+    transform: translateX(20px);
+}
+
+.kn-toggle-text {
+    font-size: var(--kn-font-size-body);
+    color: var(--kn-color-text-primary);
+}
+
+/* ============================================
+   SLIDER
+   ============================================ */
+
+.kn-slider {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--kn-color-border);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.kn-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--kn-color-accent);
+    cursor: pointer;
+    border: 2px solid var(--kn-color-surface);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.kn-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--kn-color-accent);
+    cursor: pointer;
+    border: 2px solid var(--kn-color-surface);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.kn-slider::-webkit-slider-thumb:hover {
+    background: #6D0000;
+}
+
+.kn-slider::-moz-range-thumb:hover {
+    background: #6D0000;
+}
+
+/* ============================================
+   CHECKBOXES
+   ============================================ */
+
+.kn-checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kn-space-sm);
+}
+
+.kn-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: var(--kn-space-xs);
+    cursor: pointer;
+}
+
+.kn-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--kn-color-accent);
+}
+
+.kn-checkbox-label {
+    font-size: var(--kn-font-size-body);
+    color: var(--kn-color-text-primary);
+    user-select: none;
+}
+
+/* Multi-select */
+.kn-select[multiple] {
+    height: auto;
+    padding: var(--kn-space-xs);
+}
+
+.kn-select[multiple] option {
+    padding: var(--kn-space-xs);
+}
+
+.kn-select[multiple] option:checked {
+    background-color: var(--kn-color-accent);
+    color: var(--kn-color-surface);
+}
+
+/* ============================================
+   BANNER
+   ============================================ */
+
+.kn-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--kn-space-md);
+    padding: var(--kn-space-md);
+    border-radius: var(--kn-border-radius);
+    margin-bottom: var(--kn-space-md);
+    border: 1px solid;
+}
+
+.kn-banner--info {
+    background-color: #E3F2FD;
+    border-color: #2196F3;
+}
+
+.kn-banner__content {
+    flex: 1;
+}
+
+.kn-banner__content strong {
+    display: block;
+    font-size: var(--kn-font-size-body);
+    color: var(--kn-color-text-primary);
+    margin-bottom: var(--kn-space-xs);
+}
+
+.kn-banner__content p {
+    font-size: var(--kn-font-size-small);
+    color: var(--kn-color-text-secondary);
+    margin: 0;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
 @media (max-width: 480px) {
     .kn-landing__headline {
         font-size: 32px;
