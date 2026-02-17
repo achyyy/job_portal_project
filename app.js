@@ -9,6 +9,7 @@ let currentFilters = {
     mode: '',
     experience: '',
     source: '',
+    status: '',
     sort: 'latest'
 };
 
@@ -199,6 +200,14 @@ const filterAndSortJobs = (jobs) => {
         );
     }
 
+    // Status filter - AND logic
+    if (currentFilters.status) {
+        filtered = filtered.filter(job => {
+            const status = getJobStatus(job.id);
+            return status === currentFilters.status;
+        });
+    }
+
     // Sort
     if (currentFilters.sort === 'latest') {
         filtered.sort((a, b) => a.postedDaysAgo - b.postedDaysAgo);
@@ -226,6 +235,7 @@ const renderJobCard = (job, showRemoveButton = false) => {
     const saveButtonClass = saved ? 'kn-button--saved' : '';
     const preferences = getPreferences();
     const showMatchScore = preferences !== null;
+    const status = getJobStatus(job.id);
 
     return `
         <div class="kn-job-card" data-job-id="${job.id}">
@@ -245,6 +255,20 @@ const renderJobCard = (job, showRemoveButton = false) => {
                 <span class="kn-job-meta">💼 ${job.experience}</span>
                 <span class="kn-job-meta">💰 ${job.salaryRange}</span>
                 <span class="kn-job-meta kn-job-meta--posted">🕒 ${formatPostedDate(job.postedDaysAgo)}</span>
+            </div>
+            
+            <div class="kn-job-card__status">
+                <label class="kn-label">Status:</label>
+                <select 
+                    class="kn-status-select" 
+                    onchange="setJobStatus(${job.id}, this.value)"
+                >
+                    <option value="Not Applied" ${status === 'Not Applied' ? 'selected' : ''}>Not Applied</option>
+                    <option value="Applied" ${status === 'Applied' ? 'selected' : ''}>Applied</option>
+                    <option value="Rejected" ${status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                    <option value="Selected" ${status === 'Selected' ? 'selected' : ''}>Selected</option>
+                </select>
+                <span class="kn-status-badge ${getStatusBadgeClass(status)}">${status}</span>
             </div>
             
             <div class="kn-job-card__actions">
@@ -312,6 +336,16 @@ const renderFilterBar = () => {
                     <option value="LinkedIn" ${currentFilters.source === 'LinkedIn' ? 'selected' : ''}>LinkedIn</option>
                     <option value="Naukri" ${currentFilters.source === 'Naukri' ? 'selected' : ''}>Naukri</option>
                     <option value="Indeed" ${currentFilters.source === 'Indeed' ? 'selected' : ''}>Indeed</option>
+                </select>
+            </div>
+            
+            <div class="kn-filter-group">
+                <select id="status-filter" class="kn-filter-select">
+                    <option value="">All Status</option>
+                    <option value="Not Applied" ${currentFilters.status === 'Not Applied' ? 'selected' : ''}>Not Applied</option>
+                    <option value="Applied" ${currentFilters.status === 'Applied' ? 'selected' : ''}>Applied</option>
+                    <option value="Rejected" ${currentFilters.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                    <option value="Selected" ${currentFilters.status === 'Selected' ? 'selected' : ''}>Selected</option>
                 </select>
             </div>
             
@@ -655,6 +689,67 @@ window.createEmailDraft = (dateKey) => {
     window.location.href = mailtoLink;
 };
 
+// Job Status Management
+const getJobStatus = (jobId) => {
+    const statuses = localStorage.getItem('jobTrackerStatus');
+    if (!statuses) return 'Not Applied';
+    const parsed = JSON.parse(statuses);
+    return parsed[jobId] || 'Not Applied';
+};
+
+window.setJobStatus = (jobId, status) => {
+    const statuses = JSON.parse(localStorage.getItem('jobTrackerStatus') || '{}');
+    statuses[jobId] = status;
+
+    // Store status change history
+    const history = JSON.parse(localStorage.getItem('jobTrackerStatusHistory') || '[]');
+    const job = jobsData.find(j => j.id === jobId);
+
+    history.unshift({
+        jobId,
+        jobTitle: job ? job.title : 'Unknown',
+        jobCompany: job ? job.company : 'Unknown',
+        status,
+        timestamp: new Date().toISOString()
+    });
+
+    localStorage.setItem('jobTrackerStatus', JSON.stringify(statuses));
+    localStorage.setItem('jobTrackerStatusHistory', JSON.stringify(history.slice(0, 20)));
+
+    showToast(`Status updated: ${status}`);
+
+    // Re-render current page
+    const currentHash = window.location.hash.slice(1) || 'dashboard';
+    renderPage(currentHash);
+};
+
+const getStatusBadgeClass = (status) => {
+    switch (status) {
+        case 'Applied': return 'kn-status-badge--applied';
+        case 'Rejected': return 'kn-status-badge--rejected';
+        case 'Selected': return 'kn-status-badge--selected';
+        default: return 'kn-status-badge--not-applied';
+    }
+};
+
+const showToast = (message) => {
+    const toast = document.createElement('div');
+    toast.className = 'kn-toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.classList.add('kn-toast--show'), 100);
+    setTimeout(() => {
+        toast.classList.remove('kn-toast--show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+};
+
+const getRecentStatusUpdates = () => {
+    const history = JSON.parse(localStorage.getItem('jobTrackerStatusHistory') || '[]');
+    return history.slice(0, 10);
+};
+
 // Attach filter listeners
 const attachFilterListeners = () => {
     const keywordInput = document.getElementById('keyword-filter');
@@ -695,6 +790,14 @@ const attachFilterListeners = () => {
     if (sourceSelect) {
         sourceSelect.addEventListener('change', (e) => {
             currentFilters.source = e.target.value;
+            renderPage('dashboard');
+        });
+    }
+
+    const statusSelect = document.getElementById('status-filter');
+    if (statusSelect) {
+        statusSelect.addEventListener('change', (e) => {
+            currentFilters.status = e.target.value;
             renderPage('dashboard');
         });
     }
@@ -1058,6 +1161,43 @@ const pages = {
                                 
                                 <p class="kn-digest-note">Demo Mode: Daily 9AM trigger simulated manually.</p>
                             </div>
+                        </div>
+                        
+                        <!-- Recent Status Updates -->
+                        <div class="kn-status-updates-section">
+                            <h3 class="kn-heading-secondary">Recent Status Updates</h3>
+                            ${(() => {
+                    const updates = getRecentStatusUpdates();
+                    if (updates.length === 0) {
+                        return '<p class="kn-text-secondary">No recent status updates.</p>';
+                    }
+                    return `
+                                    <div class="kn-status-updates">
+                                        ${updates.map(update => {
+                        const date = new Date(update.timestamp);
+                        const formattedDate = date.toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+
+                        return `
+                                                <div class="kn-status-update">
+                                                    <div class="kn-status-update__content">
+                                                        <h4 class="kn-status-update__title">${update.jobTitle}</h4>
+                                                        <p class="kn-status-update__company">${update.jobCompany}</p>
+                                                    </div>
+                                                    <div class="kn-status-update__badge">
+                                                        <span class="kn-status-badge ${getStatusBadgeClass(update.status)}">${update.status}</span>
+                                                        <span class="kn-status-update__date">${formattedDate}</span>
+                                                    </div>
+                                                </div>
+                                            `;
+                    }).join('')}
+                                    </div>
+                                `;
+                })()}
                         </div>
                     </div>
                 </div>
