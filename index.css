@@ -1352,6 +1352,130 @@ body {
 }
 
 /* ============================================
+   PROOF & SUBMISSION PAGE
+   ============================================ */
+
+/* Proof Status */
+.kn-proof-status {
+    text-align: center;
+    margin-bottom: var(--kn-space-lg);
+}
+
+.kn-status-badge--not-started {
+    background-color: #F5F5F5;
+    border-color: #CCCCCC;
+    color: #666666;
+}
+
+.kn-status-badge--in-progress {
+    background-color: #FFF3E0;
+    border-color: #FF9800;
+    color: #E65100;
+}
+
+.kn-status-badge--shipped {
+    background-color: #E8F5E9;
+    border-color: #4CAF50;
+    color: #2E7D32;
+}
+
+/* Proof Sections */
+.kn-proof-section {
+    margin-bottom: var(--kn-space-xl);
+}
+
+/* Step Summary */
+.kn-proof-steps {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kn-space-sm);
+}
+
+.kn-proof-step {
+    display: flex;
+    align-items: center;
+    gap: var(--kn-space-sm);
+    padding: var(--kn-space-sm);
+    background-color: var(--kn-color-surface);
+    border: 1px solid var(--kn-color-border);
+    border-radius: var(--kn-border-radius);
+}
+
+.kn-proof-step__number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background-color: var(--kn-color-text-primary);
+    color: var(--kn-color-surface);
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.kn-proof-step__label {
+    flex: 1;
+    font-size: var(--kn-font-size-body);
+    color: var(--kn-color-text-primary);
+}
+
+.kn-proof-step__status {
+    font-size: 18px;
+}
+
+/* Artifact Inputs */
+.kn-proof-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kn-space-md);
+}
+
+/* Shipped Message */
+.kn-proof-shipped {
+    text-align: center;
+    padding: var(--kn-space-xl);
+    background-color: #E8F5E9;
+    border: 1px solid #4CAF50;
+    border-radius: var(--kn-border-radius);
+    margin-top: var(--kn-space-lg);
+}
+
+.kn-proof-shipped__icon {
+    font-size: 48px;
+    color: #2E7D32;
+    margin-bottom: var(--kn-space-sm);
+}
+
+.kn-proof-shipped h3 {
+    font-family: var(--kn-font-serif);
+    font-size: 20px;
+    color: #2E7D32;
+    margin: 0;
+}
+
+/* Proof Warning */
+.kn-proof-warning {
+    padding: var(--kn-space-md);
+    background-color: #FFF3E0;
+    border: 1px solid #FF9800;
+    border-radius: var(--kn-border-radius);
+    color: #E65100;
+    margin-top: var(--kn-space-md);
+    font-size: var(--kn-font-size-body);
+}
+
+.kn-proof-warning a {
+    color: #E65100;
+    text-decoration: underline;
+}
+
+.kn-proof-warning a:hover {
+    color: #BF360C;
+}
+
+/* ============================================
    DIGEST EMAIL LAYOUT
    ============================================ */
 

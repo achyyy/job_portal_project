@@ -811,6 +811,134 @@ const renderTestItems = (checklist) => {
     `).join('');
 };
 
+// Proof & Submission Management
+const getProofLinks = () => {
+    const saved = localStorage.getItem('jobTrackerProofLinks');
+    if (!saved) {
+        return { lovable: '', github: '', deployed: '' };
+    }
+    return JSON.parse(saved);
+};
+
+const getProjectStatus = () => {
+    return localStorage.getItem('jobTrackerProjectStatus') || 'not-started';
+};
+
+const getStatusLabel = (status) => {
+    const labels = {
+        'not-started': 'Not Started',
+        'in-progress': 'In Progress',
+        'shipped': 'Shipped'
+    };
+    return labels[status] || 'Not Started';
+};
+
+const renderStepSummary = (allTestsPassed, allLinksProvided) => {
+    const steps = [
+        { label: 'Set up preferences', completed: true },
+        { label: 'Configure match scoring', completed: true },
+        { label: 'Generate daily digest', completed: true },
+        { label: 'Implement status tracking', completed: true },
+        { label: 'Add status filters', completed: true },
+        { label: 'Complete test checklist', completed: allTestsPassed },
+        { label: 'Provide artifact links', completed: allLinksProvided },
+        { label: 'Ship project', completed: getProjectStatus() === 'shipped' }
+    ];
+
+    return steps.map((step, index) => `
+        <div class="kn-proof-step">
+            <span class="kn-proof-step__number">${index + 1}</span>
+            <span class="kn-proof-step__label">${step.label}</span>
+            <span class="kn-proof-step__status">${step.completed ? '✓' : '⏳'}</span>
+        </div>
+    `).join('');
+};
+
+window.saveProofLinks = () => {
+    const lovable = document.getElementById('lovable-link').value.trim();
+    const github = document.getElementById('github-link').value.trim();
+    const deployed = document.getElementById('deployed-link').value.trim();
+
+    // Validate URLs
+    const urlPattern = /^https?:\/\/.+/;
+
+    if (lovable && !urlPattern.test(lovable)) {
+        alert('Please enter a valid Lovable project URL');
+        return;
+    }
+
+    if (github && !urlPattern.test(github)) {
+        alert('Please enter a valid GitHub repository URL');
+        return;
+    }
+
+    if (deployed && !urlPattern.test(deployed)) {
+        alert('Please enter a valid deployed URL');
+        return;
+    }
+
+    const links = { lovable, github, deployed };
+    localStorage.setItem('jobTrackerProofLinks', JSON.stringify(links));
+
+    // Update status to in-progress if any link is provided
+    if ((lovable || github || deployed) && getProjectStatus() === 'not-started') {
+        localStorage.setItem('jobTrackerProjectStatus', 'in-progress');
+    }
+
+    showToast('Links saved successfully');
+    renderPage('proof');
+};
+
+window.copySubmission = () => {
+    const links = getProofLinks();
+
+    const submission = `------------------------------------------
+Job Notification Tracker — Final Submission
+
+Lovable Project:
+${links.lovable}
+
+GitHub Repository:
+${links.github}
+
+Live Deployment:
+${links.deployed}
+
+Core Features:
+- Intelligent match scoring
+- Daily digest simulation
+- Status tracking
+- Test checklist enforced
+------------------------------------------`;
+
+    navigator.clipboard.writeText(submission).then(() => {
+        showToast('Submission copied to clipboard');
+    }).catch(() => {
+        alert('Failed to copy. Please copy manually:\n\n' + submission);
+    });
+};
+
+window.markAsShipped = () => {
+    const allTestsPassed = isAllTestsPassed();
+    const links = getProofLinks();
+    const allLinksProvided = links.lovable && links.github && links.deployed;
+
+    if (!allTestsPassed) {
+        alert('Please complete all 10 test checklist items before shipping.');
+        return;
+    }
+
+    if (!allLinksProvided) {
+        alert('Please provide all 3 artifact links before shipping.');
+        return;
+    }
+
+    if (confirm('Mark Project 1 as shipped?')) {
+        localStorage.setItem('jobTrackerProjectStatus', 'shipped');
+        renderPage('proof');
+    }
+};
+
 // Attach filter listeners
 const attachFilterListeners = () => {
     const keywordInput = document.getElementById('keyword-filter');
@@ -1269,19 +1397,121 @@ const pages = {
     },
 
     proof: {
-        render: () => `
-            <div class="kn-page">
-                <div class="kn-page__header">
-                    <h1 class="kn-page__title">Proof</h1>
-                    <p class="kn-page__subtitle">Track your job search progress</p>
+        render: () => {
+            const proofLinks = getProofLinks();
+            const projectStatus = getProjectStatus();
+            const allTestsPassed = isAllTestsPassed();
+            const allLinksProvided = proofLinks.lovable && proofLinks.github && proofLinks.deployed;
+            const canShip = allTestsPassed && allLinksProvided;
+
+            return `
+                <div class="kn-page">
+                    <div class="kn-page__header">
+                        <h1 class="kn-page__title">Proof & Submission</h1>
+                        <p class="kn-page__subtitle">Project 1 — Job Notification Tracker</p>
+                    </div>
+                    
+                    <!-- Status Badge -->
+                    <div class="kn-proof-status">
+                        <span class="kn-status-badge kn-status-badge--${projectStatus}">
+                            ${getStatusLabel(projectStatus)}
+                        </span>
+                    </div>
+                    
+                    <!-- Step Completion Summary -->
+                    <div class="kn-proof-section">
+                        <h2 class="kn-heading-secondary">Step Completion Summary</h2>
+                        <div class="kn-proof-steps">
+                            ${renderStepSummary(allTestsPassed, allLinksProvided)}
+                        </div>
+                    </div>
+                    
+                    <!-- Artifact Collection -->
+                    <div class="kn-proof-section">
+                        <h2 class="kn-heading-secondary">Artifact Collection</h2>
+                        <div class="kn-proof-inputs">
+                            <div class="kn-form-group">
+                                <label class="kn-label">Lovable Project Link *</label>
+                                <input 
+                                    type="url" 
+                                    id="lovable-link" 
+                                    class="kn-input" 
+                                    placeholder="https://lovable.dev/projects/..."
+                                    value="${proofLinks.lovable || ''}"
+                                >
+                            </div>
+                            
+                            <div class="kn-form-group">
+                                <label class="kn-label">GitHub Repository Link *</label>
+                                <input 
+                                    type="url" 
+                                    id="github-link" 
+                                    class="kn-input" 
+                                    placeholder="https://github.com/username/repo"
+                                    value="${proofLinks.github || ''}"
+                                >
+                            </div>
+                            
+                            <div class="kn-form-group">
+                                <label class="kn-label">Deployed URL *</label>
+                                <input 
+                                    type="url" 
+                                    id="deployed-link" 
+                                    class="kn-input" 
+                                    placeholder="https://your-project.vercel.app"
+                                    value="${proofLinks.deployed || ''}"
+                                >
+                            </div>
+                            
+                            <button class="kn-button kn-button--primary" onclick="saveProofLinks()">
+                                Save Links
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Submission Export -->
+                    ${allLinksProvided ? `
+                        <div class="kn-proof-section">
+                            <h2 class="kn-heading-secondary">Final Submission</h2>
+                            <button class="kn-button kn-button--secondary" onclick="copySubmission()">
+                                Copy Final Submission
+                            </button>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Ship Validation -->
+                    ${canShip && projectStatus !== 'shipped' ? `
+                        <div class="kn-proof-section">
+                            <button class="kn-button kn-button--primary" onclick="markAsShipped()">
+                                Mark as Shipped
+                            </button>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Shipped Message -->
+                    ${projectStatus === 'shipped' ? `
+                        <div class="kn-proof-shipped">
+                            <div class="kn-proof-shipped__icon">✓</div>
+                            <h3>Project 1 Shipped Successfully.</h3>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Validation Messages -->
+                    ${!allTestsPassed ? `
+                        <div class="kn-proof-warning">
+                            ⚠️ Complete all 10 test checklist items before shipping.
+                            <a href="#jt/07-test">Go to Test Checklist</a>
+                        </div>
+                    ` : ''}
+                    
+                    ${!allLinksProvided ? `
+                        <div class="kn-proof-warning">
+                            ⚠️ Provide all 3 artifact links before shipping.
+                        </div>
+                    ` : ''}
                 </div>
-                <div class="kn-empty-state">
-                    <div class="kn-empty-state__icon">✓</div>
-                    <h2 class="kn-empty-state__title">Artifact collection placeholder</h2>
-                    <p class="kn-empty-state__text">This section will track your applications, interviews, and outcomes.</p>
-                </div>
-            </div>
-        `
+            `;
+        }
     },
 
     'jt/07-test': {
