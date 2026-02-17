@@ -750,6 +750,67 @@ const getRecentStatusUpdates = () => {
     return history.slice(0, 10);
 };
 
+// Test Checklist Management
+const testItems = [
+    { id: 'test1', label: 'Preferences persist after refresh', tooltip: 'Set preferences, refresh page, verify they remain' },
+    { id: 'test2', label: 'Match score calculates correctly', tooltip: 'Check jobs have correct match % based on preferences' },
+    { id: 'test3', label: '"Show only matches" toggle works', tooltip: 'Toggle on/off, verify filtering behavior' },
+    { id: 'test4', label: 'Save job persists after refresh', tooltip: 'Save a job, refresh, check it remains saved' },
+    { id: 'test5', label: 'Apply opens in new tab', tooltip: 'Click Apply, verify new tab opens' },
+    { id: 'test6', label: 'Status update persists after refresh', tooltip: 'Change status, refresh, verify it remains' },
+    { id: 'test7', label: 'Status filter works correctly', tooltip: 'Filter by status, verify correct jobs show' },
+    { id: 'test8', label: 'Digest generates top 10 by score', tooltip: 'Generate digest, verify top 10 jobs by match score' },
+    { id: 'test9', label: 'Digest persists for the day', tooltip: 'Generate digest, refresh, verify same digest loads' },
+    { id: 'test10', label: 'No console errors on main pages', tooltip: 'Open console, navigate pages, check for errors' }
+];
+
+const getTestChecklist = () => {
+    const saved = localStorage.getItem('jobTrackerTestChecklist');
+    if (!saved) {
+        return {
+            test1: false, test2: false, test3: false, test4: false, test5: false,
+            test6: false, test7: false, test8: false, test9: false, test10: false
+        };
+    }
+    return JSON.parse(saved);
+};
+
+window.toggleTestItem = (testId) => {
+    const checklist = getTestChecklist();
+    checklist[testId] = !checklist[testId];
+    localStorage.setItem('jobTrackerTestChecklist', JSON.stringify(checklist));
+    renderPage('jt/07-test');
+};
+
+window.resetTestChecklist = () => {
+    if (confirm('Are you sure you want to reset all test statuses?')) {
+        localStorage.removeItem('jobTrackerTestChecklist');
+        renderPage('jt/07-test');
+    }
+};
+
+const isAllTestsPassed = () => {
+    const checklist = getTestChecklist();
+    return Object.values(checklist).every(v => v === true);
+};
+
+const renderTestItems = (checklist) => {
+    return testItems.map(item => `
+        <div class="kn-test-item">
+            <label class="kn-test-item__label">
+                <input 
+                    type="checkbox" 
+                    class="kn-checkbox" 
+                    ${checklist[item.id] ? 'checked' : ''}
+                    onchange="toggleTestItem('${item.id}')"
+                >
+                <span class="kn-test-item__text">${item.label}</span>
+            </label>
+            <span class="kn-test-item__tooltip" title="${item.tooltip}">?</span>
+        </div>
+    `).join('');
+};
+
 // Attach filter listeners
 const attachFilterListeners = () => {
     const keywordInput = document.getElementById('keyword-filter');
@@ -839,7 +900,9 @@ const routes = {
     '/saved': 'saved',
     '/digest': 'digest',
     '/settings': 'settings',
-    '/proof': 'proof'
+    '/proof': 'proof',
+    '/jt/07-test': 'jt/07-test',
+    '/jt/08-ship': 'jt/08-ship'
 };
 
 // Page templates
@@ -1219,6 +1282,90 @@ const pages = {
                 </div>
             </div>
         `
+    },
+
+    'jt/07-test': {
+        render: () => {
+            const checklist = getTestChecklist();
+            const passedCount = Object.values(checklist).filter(v => v).length;
+            const allPassed = passedCount === 10;
+
+            return `
+                <div class="kn-page">
+                    <div class="kn-page__header">
+                        <h1 class="kn-page__title">Test Checklist</h1>
+                        <p class="kn-page__subtitle">Verify all features before shipping</p>
+                    </div>
+                    
+                    <!-- Test Summary -->
+                    <div class="kn-test-summary ${allPassed ? 'kn-test-summary--pass' : 'kn-test-summary--warn'}">
+                        <h2>Tests Passed: ${passedCount} / 10</h2>
+                        ${!allPassed ? '<p class="kn-warning-text">⚠️ Resolve all issues before shipping.</p>' : '<p class="kn-success-text">✓ All tests passed! Ready to ship.</p>'}
+                    </div>
+                    
+                    <!-- Checklist -->
+                    <div class="kn-test-checklist">
+                        ${renderTestItems(checklist)}
+                    </div>
+                    
+                    <!-- Reset Button -->
+                    <div class="kn-test-actions">
+                        <button class="kn-button kn-button--secondary" onclick="resetTestChecklist()">
+                            Reset Test Status
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    },
+
+    'jt/08-ship': {
+        render: () => {
+            const allPassed = isAllTestsPassed();
+
+            if (!allPassed) {
+                return `
+                    <div class="kn-page">
+                        <div class="kn-page__header">
+                            <h1 class="kn-page__title">🔒 Ship Locked</h1>
+                            <p class="kn-page__subtitle">Complete all tests before shipping</p>
+                        </div>
+                        
+                        <div class="kn-ship-locked">
+                            <div class="kn-ship-locked__icon">🔒</div>
+                            <h2>Cannot Ship Yet</h2>
+                            <p>You must pass all 10 tests in the Test Checklist before you can ship this project.</p>
+                            <a href="#jt/07-test" class="kn-button kn-button--primary">Go to Test Checklist</a>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="kn-page">
+                    <div class="kn-page__header">
+                        <h1 class="kn-page__title">🚀 Ready to Ship</h1>
+                        <p class="kn-page__subtitle">All tests passed!</p>
+                    </div>
+                    
+                    <div class="kn-ship-ready">
+                        <div class="kn-ship-ready__icon">✓</div>
+                        <h2>All Tests Passed</h2>
+                        <p>Your Job Notification Tracker is ready to ship!</p>
+                        <div class="kn-ship-summary">
+                            <h3>What's Included:</h3>
+                            <ul>
+                                <li>✓ Preference-based job matching</li>
+                                <li>✓ Daily digest engine</li>
+                                <li>✓ Job status tracking</li>
+                                <li>✓ Advanced filtering and sorting</li>
+                                <li>✓ Persistent storage</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
     }
 };
 

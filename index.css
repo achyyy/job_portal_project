@@ -1199,6 +1199,159 @@ body {
 }
 
 /* ============================================
+   TEST CHECKLIST SYSTEM
+   ============================================ */
+
+/* Test Summary */
+.kn-test-summary {
+    padding: var(--kn-space-md);
+    border-radius: var(--kn-border-radius);
+    margin-bottom: var(--kn-space-lg);
+    text-align: center;
+}
+
+.kn-test-summary--pass {
+    background-color: #E8F5E9;
+    border: 1px solid #4CAF50;
+}
+
+.kn-test-summary--warn {
+    background-color: #FFF3E0;
+    border: 1px solid #FF9800;
+}
+
+.kn-test-summary h2 {
+    font-family: var(--kn-font-serif);
+    font-size: 24px;
+    margin-bottom: var(--kn-space-xs);
+    color: var(--kn-color-text-primary);
+}
+
+.kn-warning-text {
+    color: #E65100;
+    margin: 0;
+    font-size: var(--kn-font-size-body);
+}
+
+.kn-success-text {
+    color: #2E7D32;
+    margin: 0;
+    font-size: var(--kn-font-size-body);
+}
+
+/* Test Checklist */
+.kn-test-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kn-space-sm);
+}
+
+.kn-test-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--kn-space-sm);
+    background-color: var(--kn-color-surface);
+    border: 1px solid var(--kn-color-border);
+    border-radius: var(--kn-border-radius);
+    transition: border-color var(--kn-transition-duration) var(--kn-transition-timing);
+}
+
+.kn-test-item:hover {
+    border-color: var(--kn-color-text-secondary);
+}
+
+.kn-test-item__label {
+    display: flex;
+    align-items: center;
+    gap: var(--kn-space-sm);
+    cursor: pointer;
+    flex: 1;
+}
+
+.kn-test-item__text {
+    font-size: var(--kn-font-size-body);
+    color: var(--kn-color-text-primary);
+}
+
+.kn-test-item__tooltip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background-color: var(--kn-color-text-secondary);
+    color: var(--kn-color-surface);
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: help;
+    flex-shrink: 0;
+}
+
+.kn-test-actions {
+    margin-top: var(--kn-space-lg);
+    text-align: center;
+}
+
+/* Ship Page */
+.kn-ship-locked,
+.kn-ship-ready {
+    text-align: center;
+    padding: var(--kn-space-xl);
+}
+
+.kn-ship-locked__icon,
+.kn-ship-ready__icon {
+    font-size: 64px;
+    margin-bottom: var(--kn-space-md);
+}
+
+.kn-ship-locked h2,
+.kn-ship-ready h2 {
+    font-family: var(--kn-font-serif);
+    font-size: 28px;
+    margin-bottom: var(--kn-space-sm);
+    color: var(--kn-color-text-primary);
+}
+
+.kn-ship-locked p,
+.kn-ship-ready p {
+    color: var(--kn-color-text-secondary);
+    margin-bottom: var(--kn-space-md);
+}
+
+.kn-ship-summary {
+    margin-top: var(--kn-space-lg);
+    text-align: left;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: var(--kn-space-md);
+    background-color: var(--kn-color-surface);
+    border: 1px solid var(--kn-color-border);
+    border-radius: var(--kn-border-radius);
+}
+
+.kn-ship-summary h3 {
+    font-family: var(--kn-font-serif);
+    font-size: 18px;
+    margin-bottom: var(--kn-space-sm);
+    color: var(--kn-color-text-primary);
+}
+
+.kn-ship-summary ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.kn-ship-summary li {
+    padding: var(--kn-space-xs) 0;
+    color: var(--kn-color-text-primary);
+}
+
+/* ============================================
    DIGEST EMAIL LAYOUT
    ============================================ */
 
